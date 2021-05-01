@@ -1,14 +1,16 @@
 import numpy as np
+from activations import Softmax
 
 
 class CrossEntropyLoss(object):
 
-    @staticmethod
-    def forward(y, y_pred):
-        # prvo za jedan primjer
-        # ima li svaki podatak iz batcha svoj loss pa se zbraja, ili ce rezultat biti vektor velicina batch_size?
+    def forward(self, y, o):
         loss = 0.
+        self.y_pred = Softmax.forward(o)
         for i in range(y.shape[0]):
-            loss += (-y * np.log(y_pred)).sum()
+            loss += (-y * np.log(self.y_pred)).sum()
 
         return loss
+
+    def backward(self, y):
+        return self.y_pred - y

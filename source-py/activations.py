@@ -1,6 +1,13 @@
 import numpy as np
 
 
+class Softmax(object):
+
+    @staticmethod
+    def forward(x_in):
+        return np.exp(x_in) / np.sum(np.exp(x_in), axis=0)
+
+
 class Tanh(object):
 
     @staticmethod
