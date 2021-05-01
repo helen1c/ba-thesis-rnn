@@ -62,9 +62,6 @@ class RnnLayer(object):
 
             activation_backward = self.activation.backward(h[:, i, :]).reshape(self.batch_size, self.hidden_dim, 1)
 
-            a = activation_backward * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :]))
-            b = activation_backward * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i - 1, :]))
-
             dEdW_in += np.sum(activation_backward * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :])), axis=0)
             dEdW_hh += np.sum(activation_backward * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i - 1, :])), axis=0)
 

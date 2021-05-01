@@ -3,12 +3,12 @@ from activations import Softmax
 
 
 class CrossEntropyLoss(object):
+    def __init__(self):
+        self.y_pred = None
 
     def forward(self, y, o):
-        loss = 0.
         self.y_pred = Softmax.forward(o)
-        for i in range(y.shape[0]):
-            loss += (-y * np.log(self.y_pred)).sum()
+        loss = (-y * np.log(self.y_pred)).sum()
 
         return loss
 
