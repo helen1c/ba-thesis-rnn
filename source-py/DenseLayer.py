@@ -5,7 +5,6 @@ class DenseLayer(object):
 
     def __init__(self, input_dim, output_dim, use_bias=True):
         sq = np.sqrt(1. / input_dim)
-        print(sq)
         self.use_bias = use_bias
         self.weights = np.random.uniform(-sq, sq, (output_dim, input_dim))
         if use_bias:
