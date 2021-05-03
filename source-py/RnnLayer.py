@@ -59,7 +59,6 @@ class RnnLayer(object):
         H_grad[:, self.seq_len, :] = dEdY[:, self.seq_len - 1, :]
 
         for i in range(self.seq_len, 0, -1):
-
             activation_backward = self.activation.backward(h[:, i, :]).reshape(self.batch_size, self.hidden_dim, 1)
 
             dEdW_in += np.sum(activation_backward * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :])), axis=0)
@@ -71,8 +70,7 @@ class RnnLayer(object):
                 pass
 
             if i > 1:
-                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
-                                                self.hidden_weights) * self.activation.backward(
+                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * self.activation.backward(
                     h[:, i, :]) + dEdY[:, i - 2, :]
             else:
                 H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],

@@ -60,21 +60,27 @@ def one_hot_encode(sequence, dict_size, seq_len, batch_size):
 X = one_hot_encode(input_seq, dict_size, seq_len, batch_size)
 T = one_hot_encode(target_seq, dict_size, seq_len, batch_size)
 
-hidden_dim = 12
+hidden_dim = 30
 
-rnn = RnnLayer(dict_size, hidden_dim, seq_len, batch_size, use_bias=False)
-dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
+rnn = RnnLayer(dict_size, hidden_dim, seq_len, batch_size)
+dense = DenseLayer(hidden_dim, dict_size)
 clos = CrossEntropyLoss()
-n_epochs = 500
+n_epochs = 400
 learning_rate = 0.03
-
+loss = 0
+preloss = loss
 for i in range(n_epochs):
     H, _ = rnn.forward(X)
     out = dense.forward(H[:, 1:, :])
     loss = clos.forward(T, out)
 
     if i % 10 == 0:
-        print(f'{i + 1}. epoha- loss: {loss}')
+        print(f'{i + 1}. epoha- loss: {loss}, lr={learning_rate}')
+
+    #if preloss < loss and i > 50:
+    #    break
+
+    preloss = loss
 
     dEdY = clos.backward(T)
 
@@ -82,9 +88,10 @@ for i in range(n_epochs):
     dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H, de_dx)
 
     dense.weights = dense.weights - learning_rate * de_dw
+
     if dense.use_bias:
         dense.bias = dense.bias - learning_rate * de_db_d
-    rnn.input_weights = rnn.input_weights - learning_rate * dEdW_in
-    rnn.hidden_weights = rnn.hidden_weights - learning_rate * dEdW_hh
+    rnn.input_weights = rnn.input_weights - learning_rate * np.clip(dEdW_in, a_min=-1, a_max=1)
+    rnn.hidden_weights = rnn.hidden_weights - learning_rate * np.clip(dEdW_hh, a_min=-1, a_max=1)
     if rnn.use_bias:
-        rnn.bias = rnn.bias - learning_rate * de_db_r
+        rnn.bias = rnn.bias - learning_rate * np.clip(de_db_r, -1, 1)

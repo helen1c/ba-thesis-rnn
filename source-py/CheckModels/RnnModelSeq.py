@@ -20,19 +20,33 @@ X = np.array(
 T = np.array([[[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]]])
 
 num_iter =400
-learning_rate = 0.004
+learning_rate = 0.003
 
+loss = 0
+preloss = loss
 for i in range(num_iter):
+
     H, _ = rnn.forward(X)
     out = dense.forward(H[:, 1:, :])
     loss = clos.forward(T, out)
 
     print(f'{i + 1}. iteracija- loss: {loss}')
 
+    if loss < preloss:
+        learning_rate += 0.001
+    else:
+        learning_rate -= 0.001
+
+    if preloss < loss and i > 50:
+        break
+
+    preloss = loss
     dEdY = clos.backward(T)
 
     de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
     dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H, de_dx)
+
+
 
     dense.weights = dense.weights - learning_rate * de_dw
     if dense.use_bias:

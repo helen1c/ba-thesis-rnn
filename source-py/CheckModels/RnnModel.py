@@ -24,7 +24,7 @@ T = np.array([[[0., 1.], [1., 0.], [0., 1.]],
               [[0., 1.], [0., 1.], [0., 1.]],
               [[1., 0.], [1., 0.], [1., 0.]]])
 
-num_iter = 50
+num_iter = 1000
 learning_rate = 0.1
 
 for i in range(num_iter):
