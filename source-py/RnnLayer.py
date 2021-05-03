@@ -30,7 +30,7 @@ class RnnLayer(object):
 
         for i in range(self.seq_len):
             input_part = np.einsum('ij,jk->ik', x_in[:, i, :], self.input_weights.T)
-            hidden_part = np.einsum('ij,jj->ij', H[:, i, :], self.hidden_weights.T)
+            hidden_part = np.einsum('ij,jk->ik', H[:, i, :], self.hidden_weights.T)
 
             H[:, i + 1, :] = self.activation.forward(input_part + hidden_part + self.bias)
 
@@ -71,11 +71,11 @@ class RnnLayer(object):
                 pass
 
             if i > 1:
-                H_grad[:, i - 1, :] = np.einsum('bh,hh->bh', H_grad[:, i, :],
-                                                self.hidden_weights) * self.activation.backward(h[:, i, :]) + dEdY[:,
-                                                                                                              i - 2, :]
+                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
+                                                self.hidden_weights) * self.activation.backward(
+                    h[:, i, :]) + dEdY[:, i - 2, :]
             else:
-                H_grad[:, i - 1, :] = np.einsum('bh,hh->bh', H_grad[:, i, :],
+                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
                                                 self.hidden_weights) * self.activation.backward(h[:, i, :])
 
         return dEdW_in, dEdW_hh, dEdB_in
