@@ -13,7 +13,7 @@ class DenseLayer(object):
             self.bias = np.zeros(output_dim)
 
     def forward(self, x_in):
-        return np.tensordot(x_in, self.weights.T, axes=((-1), (0))) + self.bias
+        return np.tensordot(x_in, self.weights.T, axes=((-1), 0)) + self.bias
 
     def backward(self, de_dy, x_in):
         # de_dw = de_dy * dYdW = de_dy * X
