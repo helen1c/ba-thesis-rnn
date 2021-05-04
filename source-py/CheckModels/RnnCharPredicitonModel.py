@@ -67,20 +67,14 @@ dense = DenseLayer(hidden_dim, dict_size)
 clos = CrossEntropyLoss()
 n_epochs = 400
 learning_rate = 0.03
-loss = 0
-preloss = loss
+
 for i in range(n_epochs):
     H, _ = rnn.forward(X)
     out = dense.forward(H[:, 1:, :])
     loss = clos.forward(T, out)
 
     if i % 10 == 0:
-        print(f'{i + 1}. epoha- loss: {loss}, lr={learning_rate}')
-
-    #if preloss < loss and i > 50:
-    #    break
-
-    preloss = loss
+        print(f'{i + 1}. epoha- loss: {loss}')
 
     dEdY = clos.backward(T)
 

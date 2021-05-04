@@ -47,11 +47,3 @@ for i in range(num_iter):
     if rnn.use_bias:
         rnn.bias = rnn.bias - learning_rate * de_db_r
 
-X_t = np.array([[[1., 0.], [1., 0.], [0., 1.]],
-                [[1., 0.], [0., 1.], [1., 0.]],
-                [[0., 1.], [1., 0.], [0., 1.]]])
-
-H, _ = rnn.forward(X_t)
-out = dense.forward(H[:, 1:, :])
-print(Softmax.forward(out))
-

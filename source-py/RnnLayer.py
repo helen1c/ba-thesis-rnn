@@ -43,7 +43,7 @@ class RnnLayer(object):
         for i in range(self.seq_len):
             # ovdje dobivam transponirano iz mog forwarda, ali sam u einsum zamijenio vrijednosti, tako da zapravo dobijem isto
             input_part = np.einsum('ij,jk->ki', self.input_weights, x_in[:, i, :].T)
-            hidden_part = np.einsum('ii,ij->ji', self.hidden_weights, H[:, i, :].T)
+            hidden_part = np.einsum('ij,jk->ik', self.hidden_weights, H[:, i, :].T)
 
             H[:, i + 1, :] = self.activation.forward(input_part + hidden_part + self.bias)
 
@@ -104,11 +104,11 @@ class RnnLayer(object):
                 pass
 
             if i > 1:
-                H_grad[:, i - 1, :] = np.einsum('bh,hh->bh', H_grad[:, i, :],
+                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
                                                 self.hidden_weights) * self.activation.backward(H[:, i, :]) + dEdY[:,
                                                                                                               i - 2, :]
             else:
-                H_grad[:, i - 1, :] = np.einsum('bh,hh->bh', H_grad[:, i, :],
+                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
                                                 self.hidden_weights) * self.activation.backward(H[:, i, :])
 
         return dEdW_in, dEdW_hh, dEdB_in
