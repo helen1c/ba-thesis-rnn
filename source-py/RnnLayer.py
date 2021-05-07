@@ -59,22 +59,29 @@ class RnnLayer(object):
         H_grad[:, self.seq_len, :] = dEdY[:, self.seq_len - 1, :]
 
         for i in range(self.seq_len, 0, -1):
-            activation_backward = self.activation.backward(h[:, i, :]).reshape(self.batch_size, self.hidden_dim, 1)
 
-            dEdW_in += np.sum(activation_backward * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :])), axis=0)
-            dEdW_hh += np.sum(activation_backward * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i - 1, :])), axis=0)
+            activation_backward = self.activation.backward(h[:, i, :])
+            back_reshaped = activation_backward.reshape(self.batch_size, self.hidden_dim, 1)
+
+            dEdW_in += np.sum(back_reshaped * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :])), axis=0)
+            dEdW_hh += np.sum(back_reshaped * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i - 1, :])), axis=0)
 
             if self.use_bias:
                 dEdB_in += np.sum(self.activation.backward(h[:, i, :]) * H_grad[:, i, :], axis=0)
             else:
                 pass
+            b = np.dot(H_grad[:, i, :], self.hidden_weights)
+            a = b * activation_backward
 
             if i > 1:
-                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * self.activation.backward(
-                    h[:, i, :]) + dEdY[:, i - 2, :]
+                H_grad[:, i - 1, :] = a + dEdY[:, i - 2, :]
             else:
-                H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
-                                                self.hidden_weights) * self.activation.backward(h[:, i, :])
+                H_grad[:, i - 1, :] = np.dot(H_grad[:, i, :], self.hidden_weights) * activation_backward
+
+            #if i > 1:
+            #    H_grad[:, i - 1, :] = ((np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * activation_backward) + dEdY[:, i - 2, :])
+            #else:
+            #    H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * activation_backward
 
         return dEdW_in, dEdW_hh, dEdB_in
 

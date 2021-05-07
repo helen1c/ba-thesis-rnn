@@ -17,7 +17,7 @@ class Tanh(object):
     @staticmethod
     def backward(x_in):
         # dEdX = dEdY * dYdX = dEdY * 1 - (tanh(X))^2
-        return 1 - (np.tanh(x_in)) ** 2
+        return 1 - x_in ** 2
 
 
 class ReLu(object):
