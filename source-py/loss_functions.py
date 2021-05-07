@@ -8,7 +8,7 @@ class CrossEntropyLoss(object):
 
     def forward(self, y, o):
         self.y_pred = Softmax.forward(o)
-        return np.sum(-y * np.log(self.y_pred + 1e-15))/y.shape[0]
+        return np.sum(-y * np.log(self.y_pred + 1e-15))/(y.shape[0])
 
     def backward(self, y):
-        return self.y_pred - y
+        return (self.y_pred - y)/(y.shape[0])

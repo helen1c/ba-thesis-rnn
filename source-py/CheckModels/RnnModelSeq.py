@@ -11,7 +11,7 @@ from activations import Softmax
 batch_size = 10  # Number of training samples
 sequence_len = 6  # Length of the binary sequence
 
-rnn = RnnLayer(1, 3, sequence_len, batch_size)
+rnn = RnnLayer(1, 3)
 dense = DenseLayer(3, 2)
 clos = CrossEntropyLoss()
 
@@ -31,8 +31,8 @@ T = np.array([[[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]],
               [[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]],
               [[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]]])
 
-num_iter = 100
-learning_rate = 0.01
+num_iter = 1000
+learning_rate = 0.3
 
 loss = 0
 preloss = loss
@@ -50,8 +50,8 @@ for i in range(num_iter):
     dense.weights = dense.weights - learning_rate * de_dw
     if dense.use_bias:
         dense.bias = dense.bias - learning_rate * de_db_d
-    rnn.input_weights = rnn.input_weights - learning_rate * np.clip(dEdW_in, -2, 2)
-    rnn.hidden_weights = rnn.hidden_weights - learning_rate * np.clip(dEdW_hh, -2, 2)
+    rnn.input_weights = rnn.input_weights - learning_rate * dEdW_in
+    rnn.hidden_weights = rnn.hidden_weights - learning_rate * dEdW_hh
     if rnn.use_bias:
         rnn.bias = rnn.bias - learning_rate * de_db_r
 

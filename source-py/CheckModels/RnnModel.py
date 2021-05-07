@@ -12,7 +12,7 @@ batch_size = 3  # Number of training samples
 # Addition of 2 n-bit numbers can result in a n+1 bit number
 sequence_len = 3  # Length of the binary sequence
 
-rnn = RnnLayer(2, 3, sequence_len, batch_size)
+rnn = RnnLayer(2, 3)
 dense = DenseLayer(3, 2)
 clos = CrossEntropyLoss()
 

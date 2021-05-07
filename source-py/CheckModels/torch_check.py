@@ -15,7 +15,7 @@ x = torch.randn(N, seq_len, emb_dim, requires_grad=True)
 x_ = x.detach().numpy()
 
 rnn = nn.RNN(emb_dim, hidden_dim, bias=False, batch_first=True)
-rnn_ = RnnLayer(emb_dim, hidden_dim, seq_len, N, use_bias=False)
+rnn_ = RnnLayer(emb_dim, hidden_dim, use_bias=False)
 rnn_.input_weights = rnn.weight_ih_l0.detach().numpy()
 rnn_.hidden_weights = rnn.weight_hh_l0.detach().numpy()
 

@@ -1,7 +1,7 @@
 from RnnLayer import RnnLayer
 import numpy as np
 
-rnn = RnnLayer(3, 2, 3, 5, use_bias=False)
+rnn = RnnLayer(3, 2, use_bias=False)
 rnn.input_weights = np.array([[-0.1553, 0.4239, 0.3296],
                               [0.3714, -0.5253, -0.3836]])
 rnn.hidden_weights = np.array([[0.0805, 0.1363],

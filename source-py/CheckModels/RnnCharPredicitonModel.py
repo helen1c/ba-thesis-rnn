@@ -4,7 +4,7 @@ from DenseLayer import DenseLayer
 from RnnLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 
-text = ['hey how are you', 'good i am fine', 'have a nice day']
+text = ['hey how are you', 'good i am fine', 'have a nice day', 'what are you doing', 'i play computer games', 'and what have you done', 'everything']
 
 # Join all the sentences together and extract the unique characters from the combined sentences
 chars = set(''.join(text))
@@ -61,18 +61,20 @@ X = one_hot_encode(input_seq, dict_size, seq_len, batch_size)
 T = one_hot_encode(target_seq, dict_size, seq_len, batch_size)
 
 hidden_dim = 30
+rnn = RnnLayer(dict_size, hidden_dim, use_bias=False)
+dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
 
-rnn = RnnLayer(dict_size, hidden_dim, seq_len, batch_size)
-dense = DenseLayer(hidden_dim, dict_size)
+
 clos = CrossEntropyLoss()
-n_epochs = 400
-learning_rate = 0.03
+n_epochs = 500
+learning_rate = 0.007
 
 for i in range(n_epochs):
     H, _ = rnn.forward(X)
-    out = dense.forward(H[:, 1:, :])
+    o = H[:, 1:, :]
+    np.ascontiguousarray(o)
+    out = dense.forward(o)
     loss = clos.forward(T, out)
-
     if i % 10 == 0:
         print(f'{i + 1}. epoha- loss: {loss}')
 
@@ -85,7 +87,7 @@ for i in range(n_epochs):
 
     if dense.use_bias:
         dense.bias = dense.bias - learning_rate * de_db_d
-    rnn.input_weights = rnn.input_weights - learning_rate * np.clip(dEdW_in, a_min=-1, a_max=1)
-    rnn.hidden_weights = rnn.hidden_weights - learning_rate * np.clip(dEdW_hh, a_min=-1, a_max=1)
+    rnn.input_weights = rnn.input_weights - learning_rate * dEdW_in
+    rnn.hidden_weights = rnn.hidden_weights - learning_rate * dEdW_hh
     if rnn.use_bias:
         rnn.bias = rnn.bias - learning_rate * np.clip(de_db_r, -1, 1)
