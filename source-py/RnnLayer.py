@@ -67,14 +67,14 @@ class RnnLayer(object):
 
         for i in range(seq_len, 0, -1):
 
-            activation_backward = self.activation.backward(h[:, i, :])
+            activation_backward = self.activation.backward_calculated(h[:, i, :])
             back_reshaped = activation_backward.reshape(batch_size, self.hidden_dim, 1)
 
             dEdW_in += np.sum(back_reshaped * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i - 1, :])), axis=0)
             dEdW_hh += np.sum(back_reshaped * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i - 1, :])), axis=0)
 
             if self.use_bias:
-                dEdB_in += np.sum(self.activation.backward(h[:, i, :]) * H_grad[:, i, :], axis=0)
+                dEdB_in += np.sum(activation_backward * H_grad[:, i, :], axis=0)
             else:
                 pass
             b = np.dot(H_grad[:, i, :], self.hidden_weights)
@@ -85,9 +85,9 @@ class RnnLayer(object):
             else:
                 H_grad[:, i - 1, :] = np.dot(H_grad[:, i, :], self.hidden_weights) * activation_backward
 
-            #if i > 1:
+            # if i > 1:
             #    H_grad[:, i - 1, :] = ((np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * activation_backward) + dEdY[:, i - 2, :])
-            #else:
+            # else:
             #    H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :], self.hidden_weights) * activation_backward
 
         return dEdW_in, dEdW_hh, dEdB_in
@@ -107,23 +107,23 @@ class RnnLayer(object):
         for i in range(seq_len, 0, -1):
 
             for k in range(batch_size):
-                act_grad = np.diag(self.activation.backward(H[k, i, :]))
+                act_grad = np.diag(self.activation.backward_calculated(H[k, i, :]))
                 h_grad = H_grad[k, i, :].reshape(self.hidden_dim, 1)
 
                 dEdW_in += np.dot(act_grad, np.dot(h_grad, X[k, i - 1, :].reshape(1, self.input_dim)))
                 dEdW_hh += np.dot(act_grad, np.dot(h_grad, H[k, i - 1, :].reshape(1, self.hidden_dim)))
 
             if self.use_bias:
-                dEdB_in += np.sum(self.activation.backward(H[:, i, :]) * H_grad[:, i, :], axis=(0))
+                dEdB_in += np.sum(self.activation.backward_calculated(H[:, i, :]) * H_grad[:, i, :], axis=0)
             else:
                 pass
 
             if i > 1:
                 H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
-                                                self.hidden_weights) * self.activation.backward(H[:, i, :]) + dEdY[:,
-                                                                                                              i - 2, :]
+                                                self.hidden_weights) * self.activation.backward_calculated(H[:, i, :]) + dEdY[:,
+                                                                                                                         i - 2, :]
             else:
                 H_grad[:, i - 1, :] = np.einsum('bh,hk->bk', H_grad[:, i, :],
-                                                self.hidden_weights) * self.activation.backward(H[:, i, :])
+                                                self.hidden_weights) * self.activation.backward_calculated(H[:, i, :])
 
         return dEdW_in, dEdW_hh, dEdB_in

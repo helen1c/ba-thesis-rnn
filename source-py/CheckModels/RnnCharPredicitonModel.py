@@ -3,6 +3,7 @@ import numpy as np
 from DenseLayer import DenseLayer
 from RnnLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
+from LSTMLayer import LSTMLayer
 
 text = ['hey how are you', 'good i am fine', 'have a nice day', 'what are you doing', 'i play computer games', 'and what have you done', 'everything']
 
@@ -61,18 +62,17 @@ X = one_hot_encode(input_seq, dict_size, seq_len, batch_size)
 T = one_hot_encode(target_seq, dict_size, seq_len, batch_size)
 
 hidden_dim = 30
-rnn = RnnLayer(dict_size, hidden_dim, use_bias=False)
+rnn = LSTMLayer(dict_size, hidden_dim, use_bias=False)
 dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
 
 
 clos = CrossEntropyLoss()
-n_epochs = 500
-learning_rate = 0.007
+n_epochs = 100
+learning_rate = 0.4
 
 for i in range(n_epochs):
-    H, _ = rnn.forward(X)
+    H, _, _ = rnn.forward(X)
     o = H[:, 1:, :]
-    np.ascontiguousarray(o)
     out = dense.forward(o)
     loss = clos.forward(T, out)
     if i % 10 == 0:
@@ -81,7 +81,7 @@ for i in range(n_epochs):
     dEdY = clos.backward(T)
 
     de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
-    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H, de_dx)
+    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, de_dx)
 
     dense.weights = dense.weights - learning_rate * de_dw
 
