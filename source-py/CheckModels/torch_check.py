@@ -4,10 +4,10 @@ from torch import nn
 import numpy as np
 
 from RnnLayer import RnnLayer
-N = 10
-emb_dim = 10
-seq_len = 10
-hidden_dim = 10
+N = 32
+emb_dim = 300
+seq_len = 28
+hidden_dim = 200
 
 
 x = torch.randn(N, seq_len, emb_dim, requires_grad=True)
@@ -39,8 +39,8 @@ dEdW_in, dEdW_hh, _ = rnn_.backward(x_, rnn_out_, de_dy_)
 
 print(f'[CUSTOM] dE/dWih:\n{dEdW_in}\n')
 print(f'[CUSTOM] dE/dWhh:\n{dEdW_hh}\n')
-#print(f'[CUSTOM] dE/dH:\n{H_grad[:,1:,:]}\n')
 
-print('RNN layer gradient check dEdW_in: ', np.isclose(rnn.weight_ih_l0.grad.numpy(), dEdW_in).all())
-print('RNN layer gradient check dEdW_hh: ', np.isclose(rnn.weight_hh_l0.grad.numpy(), dEdW_hh).all())
+
+print('RNN layer gradient check dEdW_in: ', np.isclose(rnn.weight_ih_l0.grad.numpy(), dEdW_in, atol=1e-3).all())
+print('RNN layer gradient check dEdW_hh: ', np.isclose(rnn.weight_hh_l0.grad.numpy(), dEdW_hh, atol=1e-3).all())
 #print('RNN layer gradient check dEdH: ', np.isclose(rnn_out.grad.numpy(), H_grad[:,1:,:]).all())

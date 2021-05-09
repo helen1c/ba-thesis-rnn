@@ -12,7 +12,7 @@ from LSTMLayer import LSTMLayer
 batch_size = 10  # Number of training samples
 sequence_len = 6  # Length of the binary sequence
 
-rnn = LSTMLayer(1, 3)
+rnn = RnnLayer(1, 3)
 dense = DenseLayer(3, 2)
 clos = CrossEntropyLoss()
 
@@ -33,20 +33,20 @@ T = np.array([[[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]],
               [[0., 1.], [1., 0.], [0., 1.], [0., 1.], [1., 0.], [0., 1.]]])
 
 num_iter = 100
-learning_rate = 0.9
+learning_rate = 1e-1
 
 loss = 0
 preloss = loss
 for i in range(num_iter):
 
-    H, _, _ = rnn.forward(X)
+    H, _ = rnn.forward(X)
     out = dense.forward(H[:, 1:, :])
     loss = clos.forward(T, out)
     print(f'{i + 1}. iteracija- loss: {loss}')
     dEdY = clos.backward(T)
 
     de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
-    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, de_dx)
+    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H,de_dx)
 
     dense.weights = dense.weights - learning_rate * de_dw
     if dense.use_bias:

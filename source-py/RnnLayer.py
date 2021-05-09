@@ -54,6 +54,32 @@ class RnnLayer(object):
         return H, H[:, seq_len, :]
 
     def backward(self, x, h, dEdY):
+
+        batch_size = x.shape[0]
+        seq_len = x.shape[1]
+
+        dEdW_in = np.zeros_like(self.input_weights)
+        dEdW_hh = np.zeros_like(self.hidden_weights)
+        dEdB_in = np.zeros_like(self.bias)
+
+        H_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
+        act = self.activation.backward_calculated(h)
+
+        for i in range(seq_len - 1, -1, -1):
+            if i < seq_len - 1:
+                H_grad[:, i, :] = np.dot(H_grad[:, i + 1, :] * act[:, i+2, :], self.hidden_weights) + dEdY[:, i, :]
+            else:
+                H_grad[:, i, :] = dEdY[:, i, :]
+
+            dEdW_in += np.sum(act[:, i+1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i, :])), axis=0)
+            dEdW_hh += np.sum(act[:, i+1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i, :])), axis=0)
+
+            if self.use_bias:
+                dEdB_in += np.sum(act[:, i+1, :] * H_grad[:, i, :], axis=0)
+
+        return dEdW_in, dEdW_hh, dEdB_in
+
+    def backward_2nd(self, x, h, dEdY):
         dEdW_in = np.zeros_like(self.input_weights)
         dEdW_hh = np.zeros_like(self.hidden_weights)
 

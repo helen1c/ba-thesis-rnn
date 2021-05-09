@@ -21,7 +21,7 @@ class Tanh(object):
 
     @staticmethod
     def backward_calculated(tanh_x_in):
-        return 1 - tanh_x_in ** 2
+        return 1 - tanh_x_in**2
 
 
 class Sigmoid(object):
