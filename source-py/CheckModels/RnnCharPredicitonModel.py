@@ -6,7 +6,7 @@ from loss_functions import CrossEntropyLoss
 from LSTMLayer import LSTMLayer
 from RnnLayer import RnnLayer
 
-text = ['hey how are you', 'good i am fine', 'have a nice day', 'what are you doing', 'i play computer games', 'and what have you done', 'everything']
+text = ['hey how are you', 'good i am fine', 'have a nice day']
 
 # Join all the sentences together and extract the unique characters from the combined sentences
 chars = set(''.join(text))
@@ -68,7 +68,7 @@ dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
 
 
 clos = CrossEntropyLoss()
-n_epochs = 100
+n_epochs = 300
 learning_rate = 0.01
 
 for i in range(n_epochs):
@@ -92,3 +92,5 @@ for i in range(n_epochs):
     rnn.hidden_weights = rnn.hidden_weights - learning_rate * dEdW_hh
     if rnn.use_bias:
         rnn.bias = rnn.bias - learning_rate * np.clip(de_db_r, -1, 1)
+
+

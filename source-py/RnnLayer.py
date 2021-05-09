@@ -65,6 +65,8 @@ class RnnLayer(object):
         H_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
         act = self.activation.backward_calculated(h)
 
+        #X_grad = np.zeros((batch_size, seq_len, self.input_dim))
+
         for i in range(seq_len - 1, -1, -1):
             if i < seq_len - 1:
                 H_grad[:, i, :] = np.dot(H_grad[:, i + 1, :] * act[:, i+2, :], self.hidden_weights) + dEdY[:, i, :]
@@ -76,6 +78,9 @@ class RnnLayer(object):
 
             if self.use_bias:
                 dEdB_in += np.sum(act[:, i+1, :] * H_grad[:, i, :], axis=0)
+
+            #X_grad[:, i, :] = np.dot(dEdY[:, i, :] * act[:, i + 1, :], self.input_weights)
+
 
         return dEdW_in, dEdW_hh, dEdB_in
 
