@@ -5,6 +5,7 @@ from RnnLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 from LSTMLayer import LSTMLayer
 from RnnLayer import RnnLayer
+from optimizers import SGD
 
 text = ['hey how are you', 'good i am fine', 'have a nice day']
 
@@ -66,10 +67,13 @@ hidden_dim = 30
 rnn = RnnLayer(dict_size, hidden_dim, use_bias=False)
 dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
 
-
 clos = CrossEntropyLoss()
-n_epochs = 300
-learning_rate = 0.01
+n_epochs = 1000
+learning_rate = 0.003
+
+from optimizers import Adam
+
+optimizer = Adam(0.01)
 
 for i in range(n_epochs):
     H, _ = rnn.forward(X)
@@ -82,15 +86,10 @@ for i in range(n_epochs):
     dEdY = clos.backward(T)
 
     de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
-    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H,de_dx)
+    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H, de_dx)
 
-    dense.weights = dense.weights - learning_rate * de_dw
+    params = [dense.weights, rnn.input_weights, rnn.hidden_weights]
+    update_params = [de_dw, dEdW_in, dEdW_hh]
 
-    if dense.use_bias:
-        dense.bias = dense.bias - learning_rate * de_db_d
-    rnn.input_weights = rnn.input_weights - learning_rate * dEdW_in
-    rnn.hidden_weights = rnn.hidden_weights - learning_rate * dEdW_hh
-    if rnn.use_bias:
-        rnn.bias = rnn.bias - learning_rate * np.clip(de_db_r, -1, 1)
-
+    optimizer.update_parameters(params, update_params)
 

@@ -11,4 +11,4 @@ class CrossEntropyLoss(object):
         return np.sum(-y * np.log(self.y_pred + 1e-15))/(np.prod(np.array(y.shape[0:len(y.shape)-1])))
 
     def backward(self, y):
-        return (self.y_pred - y)/(y.shape[0])
+        return (self.y_pred - y)/(np.prod(np.array(y.shape[0:len(y.shape)-1])))
