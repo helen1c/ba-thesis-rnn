@@ -3,7 +3,7 @@ import torch
 from torch import nn
 
 from DenseLayer import DenseLayer
-from RnnLayer import RnnLayer
+from RNNLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 
 RNN_TYPES = ['RNN', 'LSTM', 'GRU']

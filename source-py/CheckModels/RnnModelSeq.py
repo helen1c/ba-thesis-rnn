@@ -1,7 +1,7 @@
 import numpy as np
 
 from DenseLayer import DenseLayer
-from RnnLayer import RnnLayer
+from RNNLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 from activations import Softmax
 from LSTMLayer import LSTMLayer

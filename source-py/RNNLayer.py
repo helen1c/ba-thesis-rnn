@@ -20,10 +20,6 @@ class RnnLayer(object):
             self.bias = np.zeros(hidden_dim)
 
     def forward(self, x_in):
-        # treba li dodati provjeru je li X_in stvarno ima sekvencu jednaku seq_len?
-        # treba li dodati provjeru je li X_in prva koordinata jednaka batch_size
-
-        # u ovom slucaju sam pretpostavio da je za sve inpute, pocetno stanje 0 u 0. vremenskom trenutku
 
         batch_size = x_in.shape[0]
         seq_len = x_in.shape[1]
@@ -65,24 +61,23 @@ class RnnLayer(object):
         H_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
         act = self.activation.backward_calculated(h)
 
-        #X_grad = np.zeros((batch_size, seq_len, self.input_dim))
+        X_grad = np.zeros((batch_size, seq_len, self.input_dim))
 
         for i in range(seq_len - 1, -1, -1):
             if i < seq_len - 1:
-                H_grad[:, i, :] = np.dot(H_grad[:, i + 1, :] * act[:, i+2, :], self.hidden_weights) + dEdY[:, i, :]
+                H_grad[:, i, :] = np.dot(H_grad[:, i + 1, :] * act[:, i + 2, :], self.hidden_weights) + dEdY[:, i, :]
             else:
                 H_grad[:, i, :] = dEdY[:, i, :]
 
-            dEdW_in += np.sum(act[:, i+1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i, :])), axis=0)
-            dEdW_hh += np.sum(act[:, i+1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i, :])), axis=0)
+            dEdW_in += np.sum(act[:, i + 1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bi->bhi', H_grad[:, i, :], x[:, i, :])), axis=0)
+            dEdW_hh += np.sum(act[:, i + 1, :].reshape(batch_size, self.hidden_dim, 1) * (np.einsum('bh,bk->bhk', H_grad[:, i, :], h[:, i, :])), axis=0)
 
             if self.use_bias:
-                dEdB_in += np.sum(act[:, i+1, :] * H_grad[:, i, :], axis=0)
+                dEdB_in += np.sum(act[:, i + 1, :] * H_grad[:, i, :], axis=0)
 
-            #X_grad[:, i, :] = np.dot(dEdY[:, i, :] * act[:, i + 1, :], self.input_weights)
+            X_grad[:, i, :] = np.dot(H_grad[:, i, :] * act[:, i + 1, :], self.input_weights)
 
-
-        return dEdW_in, dEdW_hh, dEdB_in
+        return dEdW_in, dEdW_hh, dEdB_in, X_grad
 
     def backward_2nd(self, x, h, dEdY):
         dEdW_in = np.zeros_like(self.input_weights)

@@ -1,10 +1,10 @@
 import numpy as np
 
 from DenseLayer import DenseLayer
-from RnnLayer import RnnLayer
+from RNNLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 from LSTMLayer import LSTMLayer
-from RnnLayer import RnnLayer
+from RNNLayer import RnnLayer
 from optimizers import SGD
 
 text = ['hey how are you', 'good i am fine', 'have a nice day']
@@ -64,21 +64,23 @@ X = one_hot_encode(input_seq, dict_size, seq_len, batch_size)
 T = one_hot_encode(target_seq, dict_size, seq_len, batch_size)
 
 hidden_dim = 30
-rnn = RnnLayer(dict_size, hidden_dim, use_bias=False)
+rnn1 = LSTMLayer(dict_size, hidden_dim, use_bias=False)
+rnn2 = LSTMLayer(hidden_dim, hidden_dim, use_bias=False)
 dense = DenseLayer(hidden_dim, dict_size, use_bias=False)
 
 clos = CrossEntropyLoss()
 n_epochs = 1000
-learning_rate = 0.003
+learning_rate = 0.1
 
 from optimizers import Adam
 
-optimizer = Adam(0.01)
+optimizer = Adam(0.03)
 
 for i in range(n_epochs):
-    H, _ = rnn.forward(X)
+    H, _, _ = rnn1.forward(X)
     o = H[:, 1:, :]
-    out = dense.forward(o)
+    H2, _, _ = rnn2.forward(o)
+    out = dense.forward(H2[:, 1:, :])
     loss = clos.forward(T, out)
     if i % 10 == 0:
         print(f'{i + 1}. epoha- loss: {loss}')
@@ -86,10 +88,10 @@ for i in range(n_epochs):
     dEdY = clos.backward(T)
 
     de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
-    dEdW_in, dEdW_hh, de_db_r = rnn.backward(X, H, de_dx)
+    dEdW_in1, dEdW_hh1, de_db_r1, grad = rnn2.backward(o, de_dx)
+    dEdW_in2, dEdW_hh2, de_db_r2, _ = rnn1.backward(X, grad)
 
-    params = [dense.weights, rnn.input_weights, rnn.hidden_weights]
-    update_params = [de_dw, dEdW_in, dEdW_hh]
+    params = [dense.weights, rnn1.input_weights, rnn1.hidden_weights, rnn2.input_weights, rnn2.hidden_weights]
+    update_params = [de_dw, dEdW_in2, dEdW_hh2, dEdW_in1, dEdW_hh1]
 
     optimizer.update_parameters(params, update_params)
-

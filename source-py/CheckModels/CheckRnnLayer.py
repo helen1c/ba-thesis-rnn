@@ -1,4 +1,4 @@
-from RnnLayer import RnnLayer
+from RNNLayer import RnnLayer
 import numpy as np
 
 rnn = RnnLayer(3, 2, use_bias=False)
