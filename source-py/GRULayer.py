@@ -75,30 +75,38 @@ class GRULayer(object):
         for i in range(seq_len - 1, -1, -1):
 
             if i < seq_len - 1:
-                fs = np.dot(gates_grad[1, :, i + 1, :], self.hidden_weights[1, :, :])
-                ss = self.gates[0, :, i, :] * (np.dot(gates_grad[2, :, i + 1, :], self.hidden_weights[2, :, :]))
-                ts = dEdY[:, i, :] * self.gates[1, :, i, :]
-                fos = np.dot(gates_grad[0, :, i + 1, :], self.hidden_weights[0, :, :])
+                # fs = np.dot(gates_grad[1, :, i + 1, :], self.hidden_weights[1, :, :].T)
+                # ss = gates_grad[2, :, i + 1, :] * (np.dot(self.gates[0, :, i, :], self.hidden_weights[2, :, :].T))
+                # ts = dEdY[:, i, :] * self.gates[1, :, i, :]
+                # fos = np.dot(gates_grad[0, :, i + 1, :], self.hidden_weights[0, :, :].T)
+                fs = (np.dot(self.gates[0, :, i, :], self.hidden_weights[2, :, :].T)) * gates_grad[2, :, i + 1, :]
+                #ss = self.gates[1, :, i, :] * (dEdY[:, i, :] + H_grad[:, i + 1, :])
+                #ss = self.gates[1, :, i, :] * (dEdY[:, i, :])
+                ss = dEdY[:, i, :]
+                #ss = self.gates[1, :, i, :] * (H_grad[:, i + 1, :]) + dEdY[:, i, :]
+                #ss = H_grad[:, i+1, :] + dEdY[:, i, :]
+
+
+                ts = np.dot(gates_grad[1, :, i + 1, :], self.hidden_weights[1, :, :].T)
+                fos = np.dot(gates_grad[0, :, i + 1, :], self.hidden_weights[0, :, :].T)
+
                 H_grad[:, i, :] = fs + ss + ts + fos
             else:
                 H_grad[:, i, :] = dEdY[:, i, :]
 
             gates_grad[2, :, i, :] = ((1 - self.gates[1, :, i, :]) * H_grad[:, i, :]) * self.tanh.backward_calculated(self.gates[2, :, i, :])
-            gates_grad[1, :, i, :] = ((self.H[:, i, :] * H_grad[:, i, :]) + (-1 * self.gates[2, :, i, :] * H_grad[:, i, :])) * self.sigmoid.backward_calculated(self.gates[1, :, i, :])
-            gates_grad[0, :, i, :] = (np.dot(gates_grad[2, :, i, :], self.hidden_weights[2, :, :]) * self.H[:, i, :]) * self.sigmoid.backward_calculated(self.gates[0, :, i, :])
+            gates_grad[1, :, i, :] = ((self.H[:, i, :] - self.gates[2, :, i, :]) * H_grad[:, i, :]) * self.sigmoid.backward_calculated(self.gates[1, :, i, :])
+            gates_grad[0, :, i, :] = (np.dot(self.H[:, i, :], self.hidden_weights[2, :, :].T) * gates_grad[2, :, i, :]) * self.sigmoid.backward_calculated(self.gates[0, :, i, :])
 
             X_grad[:, i, :] = np.dot(gates_grad[2, :, i, :], self.input_weights[2, :, :]) + np.dot(gates_grad[1, :, i, :], self.input_weights[1, :, :]) + np.dot(gates_grad[0, :, i, :],
                                                                                                                                                                  self.input_weights[0, :, :])
-            h_t_T = self.H[:, i, :].T
-
             dEdW_in[0, :, :] += np.dot(gates_grad[0, :, i, :].T, X_in[:, i, :])
             dEdW_in[1, :, :] += np.dot(gates_grad[1, :, i, :].T, X_in[:, i, :])
             dEdW_in[2, :, :] += np.dot(gates_grad[2, :, i, :].T, X_in[:, i, :])
 
-            if i < seq_len - 1:
-                dEdW_hh[0, :, :] += np.dot(h_t_T, gates_grad[0, :, i, :])
-                dEdW_hh[1, :, :] += np.dot(h_t_T, gates_grad[1, :, i, :])
-                dEdW_hh[2, :, :] += np.dot((self.H[:, i, :] * self.gates[0, :, i, :]).T, gates_grad[2, :, i, :])
+            dEdW_hh[0, :, :] += np.dot(gates_grad[0, :, i, :].T, self.H[:, i, :])
+            dEdW_hh[1, :, :] += np.dot(gates_grad[1, :, i, :].T, self.H[:, i, :])
+            dEdW_hh[2, :, :] += np.dot((gates_grad[2, :, i, :] * self.gates[0, :, i, :]).T, self.H[:, i, :])
 
             if self.use_bias:
                 dEdB_in[0, :] += np.sum(gates_grad[0, :, i, :], axis=0)

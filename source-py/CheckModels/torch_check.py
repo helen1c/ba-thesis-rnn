@@ -4,10 +4,10 @@ from torch import nn
 import numpy as np
 
 from RNNLayer import RnnLayer
-N = 5
-emb_dim = 5
-seq_len = 5
-hidden_dim = 5
+N = 32
+emb_dim = 300
+seq_len = 45
+hidden_dim = 200
 
 
 x = torch.randn(N, seq_len, emb_dim, requires_grad=True)

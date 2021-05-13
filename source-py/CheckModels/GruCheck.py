@@ -6,7 +6,7 @@ from GRULayer import GRULayer
 
 N = 5
 emb_dim = 5
-seq_len = 1
+seq_len = 4
 hidden_dim = 5
 
 # N = 20
@@ -36,8 +36,8 @@ h_0_ = h_0.detach().numpy().reshape((N, hidden_dim))
 gru_out, h_n = gru(x, h_0)
 gru_out_, h_n_ = gru_.forward(x_, h_0_)
 
-#gru_out, h_n = gru(x)
-#gru_out_, h_n_ = gru_.forward(x_)
+# gru_out, h_n = gru(x)
+# gru_out_, h_n_ = gru_.forward(x_)
 
 gru_out__ = gru_out_[:, 1:, :]  # remove zeros prepended to every hidden output
 
@@ -52,11 +52,9 @@ gru_out.backward(de_dy)
 
 dEdW_in, dEdW_hh, a, X_grad = gru_.backward(x_, de_dy_)
 
-print('LSTM layer gradient check dEdW_in: ', np.isclose(gru.weight_ih_l0.grad.numpy(), dEdW_in.reshape(3*hidden_dim,emb_dim), atol=1e-3).all())
-print('LSTM layer gradient check dEdW_hh: ', np.isclose(gru.weight_hh_l0.grad.numpy(), dEdW_hh.reshape(3*hidden_dim,hidden_dim), atol=1e-3).all())
+print('LSTM layer gradient check dEdW_in: ', np.isclose(gru.weight_ih_l0.grad.numpy(), dEdW_in.reshape(3 * hidden_dim, emb_dim), atol=1e-3).all())
+print('LSTM layer gradient check dEdW_hh: ', np.isclose(gru.weight_hh_l0.grad.numpy(), dEdW_hh.reshape(3 * hidden_dim, hidden_dim), atol=1e-3).all())
 print('LSTM layer gradient check dEdX: ', np.isclose(x.grad.numpy(), X_grad, atol=1e-3).all())
 
-
-
-
-
+#print(f'Njihove tezine: {gru.weight_hh_l0.grad}')
+#print(f'Moje tezine: {dEdW_hh.reshape(3 * hidden_dim, emb_dim)}')

@@ -72,7 +72,6 @@ class LSTMLayer(object):
         dEdW_hh = np.zeros_like(self.hidden_weights)
         dEdB_in = np.zeros_like(self.bias)
 
-        H_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
         C_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
         X_grad = np.zeros((batch_size, seq_len, self.input_dim))
 
@@ -81,16 +80,16 @@ class LSTMLayer(object):
         for i in range(seq_len - 1, -1, -1):
 
             if i < seq_len - 1:
-                H_grad[:, i, :] = np.matmul(gates_grad[:, :, i + 1, :], self.hidden_weights).sum(axis=0) + dEdY[:, i, :]
-                C_grad[:, i, :] = H_grad[:, i, :] * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :]) + C_grad[:, i + 1, :] * self.gates[1, :, i + 1, :]
+                H_grad = np.matmul(gates_grad[:, :, i + 1, :], self.hidden_weights).sum(axis=0) + dEdY[:, i, :]
+                C_grad[:, i, :] = H_grad * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :]) + C_grad[:, i + 1, :] * self.gates[1, :, i + 1, :]
             else:
-                H_grad[:, i, :] = dEdY[:, i, :]
-                C_grad[:, i, :] = H_grad[:, i, :] * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :])
+                H_grad = dEdY[:, i, :]
+                C_grad[:, i, :] = H_grad * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :])
 
             gates_grad[0, :, i, :] = C_grad[:, i, :] * self.gates[2, :, i, :] * self.sigmoid.backward_calculated(self.gates[0, :, i, :])
             gates_grad[1, :, i, :] = C_grad[:, i, :] * self.C[:, i, :] * self.sigmoid.backward_calculated(self.gates[1, :, i, :])
             gates_grad[2, :, i, :] = C_grad[:, i, :] * self.gates[0, :, i, :] * self.tanh.backward_calculated(self.gates[2, :, i, :])
-            gates_grad[3, :, i, :] = H_grad[:, i, :] * self.tanh.forward(self.C[:, i + 1, :]) * self.sigmoid.backward_calculated(self.gates[3, :, i, :])
+            gates_grad[3, :, i, :] = H_grad * self.tanh.forward(self.C[:, i + 1, :]) * self.sigmoid.backward_calculated(self.gates[3, :, i, :])
 
             X_grad[:, i, :] = np.matmul(gates_grad[:, :, i, :], self.input_weights).sum(axis=0)
 
