@@ -75,6 +75,60 @@ class LSTMLayer(object):
         C_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
         X_grad = np.zeros((batch_size, seq_len, self.input_dim))
 
+        gates_grad_previous = np.zeros((4, batch_size, self.hidden_dim))
+        gates_grad_current = np.zeros((4, batch_size, self.hidden_dim))
+
+        for i in range(seq_len - 1, -1, -1):
+
+            if i < seq_len - 1:
+                H_grad = np.matmul(gates_grad_previous, self.hidden_weights).sum(axis=0) + dEdY[:, i, :]
+                C_grad[:, i, :] = H_grad * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :]) + C_grad[:, i + 1, :] * self.gates[1, :, i + 1, :]
+            else:
+                H_grad = dEdY[:, i, :]
+                C_grad[:, i, :] = H_grad * self.gates[3, :, i, :] * self.tanh.backward(self.C[:, i + 1, :])
+
+            gates_grad_current[0, :, :] = C_grad[:, i, :] * self.gates[2, :, i, :] * self.sigmoid.backward_calculated(self.gates[0, :, i, :])
+            gates_grad_current[1, :, :] = C_grad[:, i, :] * self.C[:, i, :] * self.sigmoid.backward_calculated(self.gates[1, :, i, :])
+            gates_grad_current[2, :, :] = C_grad[:, i, :] * self.gates[0, :, i, :] * self.tanh.backward_calculated(self.gates[2, :, i, :])
+            gates_grad_current[3, :, :] = H_grad * self.tanh.forward(self.C[:, i + 1, :]) * self.sigmoid.backward_calculated(self.gates[3, :, i, :])
+
+            X_grad[:, i, :] = np.matmul(gates_grad_current, self.input_weights).sum(axis=0)
+
+            #dEdW_in += np.einsum('cbi,bo->cbio', gates_grad_current, X_in[:, i, :]).sum(axis=1)
+
+            dEdW_in[0, :, :] += np.einsum('bi,bo->bio', gates_grad_current[0, :, :], X_in[:, i, :]).sum(axis=0)
+            dEdW_in[1, :, :] += np.einsum('bi,bo->bio', gates_grad_current[1, :, :], X_in[:, i, :]).sum(axis=0)
+            dEdW_in[2, :, :] += np.einsum('bi,bo->bio', gates_grad_current[2, :, :], X_in[:, i, :]).sum(axis=0)
+            dEdW_in[3, :, :] += np.einsum('bi,bo->bio', gates_grad_current[3, :, :], X_in[:, i, :]).sum(axis=0)
+
+            if i < seq_len - 1:
+                dEdW_hh[0, :, :] += np.einsum('bi,bo->bio', gates_grad_previous[0, :, :], self.H[:, i + 1, :]).sum(axis=0)
+                dEdW_hh[1, :, :] += np.einsum('bi,bo->bio', gates_grad_previous[1, :, :], self.H[:, i + 1, :]).sum(axis=0)
+                dEdW_hh[2, :, :] += np.einsum('bi,bo->bio', gates_grad_previous[2, :, :], self.H[:, i + 1, :]).sum(axis=0)
+                dEdW_hh[3, :, :] += np.einsum('bi,bo->bio', gates_grad_previous[3, :, :], self.H[:, i + 1, :]).sum(axis=0)
+
+            if self.use_bias:
+                dEdB_in[0, :] += np.sum(gates_grad_current[0, :, :], axis=0)
+                dEdB_in[1, :] += np.sum(gates_grad_current[1, :, :], axis=0)
+                dEdB_in[2, :] += np.sum(gates_grad_current[2, :, :], axis=0)
+                dEdB_in[3, :] += np.sum(gates_grad_current[3, :, :], axis=0)
+
+            gates_grad_previous = np.array(gates_grad_current, copy=True)
+
+        return dEdW_in, dEdW_hh, dEdB_in, X_grad
+
+    def backward_with_memory(self, X_in, dEdY):
+
+        batch_size = X_in.shape[0]
+        seq_len = X_in.shape[1]
+
+        dEdW_in = np.zeros_like(self.input_weights)
+        dEdW_hh = np.zeros_like(self.hidden_weights)
+        dEdB_in = np.zeros_like(self.bias)
+
+        C_grad = np.zeros((batch_size, seq_len, self.hidden_dim))
+        X_grad = np.zeros((batch_size, seq_len, self.input_dim))
+
         gates_grad = np.zeros((4, batch_size, seq_len, self.hidden_dim))
 
         for i in range(seq_len - 1, -1, -1):
