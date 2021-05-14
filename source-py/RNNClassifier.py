@@ -9,7 +9,7 @@ from RNNLayer import RnnLayer
 from loss_functions import CrossEntropyLoss
 from optimizers import Adam
 
-data_path_train_csv = '../dataset/dd_dataset/train/train/train.csv'
+data_path_train_csv = '../dataset/dd_dataset/test/test/test.csv'
 
 
 def lowercase(raw):
@@ -88,9 +88,9 @@ bucket_iterator = BucketIterator(dataset, batch_size=32, bucket_sort_key=instanc
 
 vocab_size = len(vocab)
 embedding_dim = embeddings.shape[1]
-hidden_dim = 200
+hidden_dim = 150
 
-num_epochs = 50
+num_epochs = 300
 
 criterion = CrossEntropyLoss()
 optimizer = Adam(0.003)
@@ -104,21 +104,20 @@ def get_one_hots(inputs):
 
 for i in range(num_epochs):
     cnt = 0
+    bucket_iterator = BucketIterator(dataset, batch_size=32, bucket_sort_key=instance_length)
     for instance in bucket_iterator:
         input_batch = np.where(instance.text == 3, 0, instance.text)[:, 0:-1]
-        output_batch = get_one_hots(instance.text[:, 1:])
+        output_b_wo = instance.text[:, 1:]
+        output_batch = get_one_hots(output_b_wo)
 
         out = classifier.forward(input_batch)
 
         loss = criterion.forward(output_batch, out)
 
-        if cnt % 50 == 0:
+        if cnt % 30 == 0:
             print(f'Epoha={i + 1}. loss={loss} minibatch_number={cnt}')
         dedy = criterion.backward(output_batch)
         gradients, model_params = classifier.backward(dedy)
 
         optimizer.update_parameters(model_params, gradients)
         cnt += 1
-
-        if cnt > 100:
-            break
