@@ -12,15 +12,19 @@ class DenseLayer(object):
         else:
             self.bias = np.zeros(output_dim)
 
-    def forward(self, x_in):
-        return np.tensordot(x_in, self.weights.T, axes=((-1), 0)) + self.bias
+        self.x_in = None
 
-    def backward(self, de_dy, x_in):
+    def forward(self, x_in):
+        self.x_in = x_in
+        return np.tensordot(self.x_in, self.weights.T, axes=((-1), 0)) + self.bias
+
+    def backward(self, de_dy):
         # de_dw = de_dy * dYdW = de_dy * X
         # dEdb = de_dy * dYdb = de_dy
         # dEdX = de_dy * dYdX = de_dy * W
-        axis = tuple(range(len(x_in.shape) - 1))
-        de_dw = np.tensordot(de_dy, x_in, axes=(axis, axis))
+
+        axis = tuple(range(len(self.x_in.shape) - 1))
+        de_dw = np.tensordot(de_dy, self.x_in, axes=(axis, axis))
         de_db = np.sum(de_dy, axis=axis)
         de_dx = np.tensordot(de_dy, self.weights, axes=(-1, 0))
 
