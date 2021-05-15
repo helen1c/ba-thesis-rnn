@@ -3,6 +3,7 @@ from podium.vectorizers import GloVe
 from podium import BucketIterator
 from podium.vocab import UNK, PAD, EOS, BOS
 import numpy as np
+import pickle
 
 data_path_train_csv = '../dataset/dd_dataset/train/train/train.csv'
 
@@ -18,7 +19,7 @@ class RemoveBlanks:
         return raw, [tok for tok in tokenized if tok not in [' ', "\n", "\t"]]
 
 
-vocab = Vocab(max_size=10000, min_freq=2, specials=(PAD(), UNK(), BOS(), EOS()))
+vocab = Vocab(max_size=5000, min_freq=2, specials=(PAD(), UNK(), BOS(), EOS()))
 text = Field('text',
              numericalizer=vocab,
              pretokenize_hooks=[lowercase],
@@ -41,9 +42,6 @@ def instance_length(instance):
     return len(tokenized)
 
 
-bucket_iterator = BucketIterator(dataset, batch_size=32, bucket_sort_key=instance_length)
-
-
 def get_embeddings(batch, embeddings):
     w2vec = np.zeros((batch.shape[0], batch.shape[1], embeddings.shape[1]))
     for i in range(batch.shape[0]):
@@ -53,7 +51,6 @@ def get_embeddings(batch, embeddings):
     return w2vec
 
 
-for iterator in bucket_iterator:
-    batch = iterator.text
-    print(get_embeddings(batch, embeddings).shape)
-    break
+with open('dataset/dataset.pkl', 'wb') as output:  # Overwrites any existing file.
+    pickle.dump((dataset, embeddings, vocab), output, pickle.HIGHEST_PROTOCOL)
+    print("Dataset saved!")

@@ -29,8 +29,3 @@ class DenseLayer(object):
         de_dx = np.tensordot(de_dy, self.weights, axes=(-1, 0))
 
         return de_dx, de_dw, de_db
-
-    def refresh(self, de_dw, de_db, learning_rate):
-        self.weights = self.weights - learning_rate * de_dw
-        if self.use_bias:
-            self.bias = self.bias - learning_rate * de_db
