@@ -15,3 +15,5 @@ Prilikom vježbanja i učenja strukture mreža korišteni su primjeri sa sljede�
 Lokacija implementiranih slojeva: /source-py, unutar tog direktorija nalaze se: DenseLayer, RNNLayer, LSTMLayer, GRULayer itd.  
 Napomena: Backward metoda GRULayer-a trenutno nije potpuno funkcionalna (neispravni gradijenti s obzirom na skriveno stanje).  
 
+Dataset: https://arxiv.org/abs/1710.03957  
+
