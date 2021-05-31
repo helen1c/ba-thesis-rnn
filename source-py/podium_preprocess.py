@@ -5,33 +5,37 @@ from podium.vocab import UNK, PAD, EOS, BOS
 import numpy as np
 import pickle
 
-data_path_train_csv = '../dataset/dd_dataset/train/train/train.csv'
+data_path_train_csv = '../dataset/finalized.csv'
 
 
 def lowercase(raw):
-    """Lowercases the input string"""
     return raw.lower()
 
+def truncate(raw, tokenized, max_length=120):
+    return raw, tokenized[:max_length]
 
 class RemoveBlanks:
     def __call__(self, raw, tokenized):
-        """Remove punctuation from tokenized data"""
         return raw, [tok for tok in tokenized if tok not in [' ', "\n", "\t"]]
 
 
-vocab = Vocab(max_size=5000, min_freq=2, specials=(PAD(), UNK(), BOS(), EOS()))
+vocab = Vocab(max_size=10000, min_freq=2, specials=(PAD(), UNK(), BOS(), EOS()))
 text = Field('text',
              numericalizer=vocab,
              pretokenize_hooks=[lowercase],
-             posttokenize_hooks=[RemoveBlanks()],
+             posttokenize_hooks=[RemoveBlanks(), truncate],
              tokenizer='spacy-en_core_web_sm')
 fields = {'text': text}
 
 dataset = TabularDataset(data_path_train_csv, format='csv', fields=fields)
-dataset.finalize_fields()
+dataset_train, dataset_test = dataset.split([80, 20], random_state=42)
+dataset_train.finalize_fields()
+
+print(dataset_train[2])
+print(dataset_train[5])
 
 vocab = fields['text'].vocab
-glove = GloVe()
+glove = GloVe(dim=100)
 embeddings = glove.load_vocab(vocab)
 
 print(f"For vocabulary of size: {len(vocab)} loaded embedding matrix of shape: {embeddings.shape}")
@@ -50,7 +54,8 @@ def get_embeddings(batch, embeddings):
 
     return w2vec
 
+path = "dataset/finalized_dataset.pkl"
 
-with open('dataset/dataset.pkl', 'wb') as output:  # Overwrites any existing file.
-    pickle.dump((dataset, embeddings, vocab), output, pickle.HIGHEST_PROTOCOL)
+with open(path, 'wb') as output:  # Overwrites any existing file.
+    pickle.dump((dataset_train, dataset_test, embeddings, vocab), output, pickle.HIGHEST_PROTOCOL)
     print("Dataset saved!")

@@ -12,9 +12,9 @@ class LSTMClassifier(object):
         self.embeddings = embeddings
         self.use_bias = use_bias
 
-        self.lstm_layer_0 = LSTMLayer(input_dim, hidden_dim)
-        self.lstm_layer_1 = LSTMLayer(hidden_dim, hidden_dim)
-        self.dense = DenseLayer(hidden_dim, vocab_size)
+        self.lstm_layer_0 = LSTMLayer(input_dim, hidden_dim, use_bias=True)
+        self.lstm_layer_1 = LSTMLayer(hidden_dim, hidden_dim, use_bias=True)
+        self.dense = DenseLayer(hidden_dim, vocab_size, use_bias=True)
 
         self.inputs = None
 
@@ -39,6 +39,7 @@ class LSTMClassifier(object):
         #dense_x, dense_w, dense_b = self.dense.backward(dEdY)
         #lstm_1_wih, lstm_1_whh, lstm_1_b, x_grad_1 = self.lstm_layer_1.backward(self.H_0[:, 1:, :], dense_x)
         #lstm_0_wih, lstm_0_whh, lstm_0_b, _ = self.lstm_layer_0.backward(self.inputs, x_grad_1)
+
 
         dense_x, dense_w, dense_b = self.dense.backward(dEdY)
         lstm_0_wih, lstm_0_whh, lstm_0_b, _ = self.lstm_layer_0.backward(self.inputs, dense_x)

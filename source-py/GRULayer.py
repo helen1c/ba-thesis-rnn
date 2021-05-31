@@ -9,7 +9,7 @@ class GRULayer(object):
         # r_t = sigmoid(W_r_hi.x_t + W_r_hh.h_(t-1) + b_r)
         # z_t = sigmoid(W_z_hi.x_t + W_z_hh.h_(t-1) + b_z)
         # c_t = tanh(W_n_hi.x_t + W_n_hh.h_(t-1) * r_t + b_c)
-        # h_t = (1-z_t) * n_t + z_t * h_(t-1)
+        # h_t = (1-z_t) * c_t + z_t * h_(t-1)
 
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
@@ -72,25 +72,18 @@ class GRULayer(object):
 
         gates_grad = np.zeros((3, batch_size, seq_len, self.hidden_dim))
 
+        H_grad[:, seq_len - 1, :] = dEdY[:, seq_len - 1, :]
+
         for i in range(seq_len - 1, -1, -1):
 
             if i < seq_len - 1:
-                # fs = np.dot(gates_grad[1, :, i + 1, :], self.hidden_weights[1, :, :].T)
-                # ss = gates_grad[2, :, i + 1, :] * (np.dot(self.gates[0, :, i, :], self.hidden_weights[2, :, :].T))
-                # ts = dEdY[:, i, :] * self.gates[1, :, i, :]
-                # fos = np.dot(gates_grad[0, :, i + 1, :], self.hidden_weights[0, :, :].T)
-                fs = (np.dot(self.gates[0, :, i, :], self.hidden_weights[2, :, :].T)) * gates_grad[2, :, i + 1, :]
-                #ss = self.gates[1, :, i, :] * (dEdY[:, i, :] + H_grad[:, i + 1, :])
-                #ss = self.gates[1, :, i, :] * (dEdY[:, i, :])
-                ss = dEdY[:, i, :]
-                #ss = self.gates[1, :, i, :] * (H_grad[:, i + 1, :]) + dEdY[:, i, :]
-                #ss = H_grad[:, i+1, :] + dEdY[:, i, :]
-
+                fs = (np.dot(self.gates[0, :, i + 1, :], self.hidden_weights[2, :, :].T)) * gates_grad[2, :, i + 1, :]
+                #ss = self.gates[1, :, i + 1, :] * H_grad[:, i + 1, :]
 
                 ts = np.dot(gates_grad[1, :, i + 1, :], self.hidden_weights[1, :, :].T)
                 fos = np.dot(gates_grad[0, :, i + 1, :], self.hidden_weights[0, :, :].T)
 
-                H_grad[:, i, :] = fs + ss + ts + fos
+                H_grad[:, i, :] = self.gates[1, :, i + 1, :] *(fs + ts + fos) + dEdY[:, i, :]
             else:
                 H_grad[:, i, :] = dEdY[:, i, :]
 
@@ -112,5 +105,16 @@ class GRULayer(object):
                 dEdB_in[0, :] += np.sum(gates_grad[0, :, i, :], axis=0)
                 dEdB_in[1, :] += np.sum(gates_grad[1, :, i, :], axis=0)
                 dEdB_in[2, :] += np.sum(gates_grad[2, :, i, :], axis=0)
+
+            #if i > 0:
+            #    fs = (np.dot(self.gates[0, :, i, :], self.hidden_weights[2, :, :].T)) * gates_grad[2, :, i, :]
+            #    #fs = (np.dot(gates_grad[2, :, i, :], self.hidden_weights[2, :, :].T)) * self.gates[0, :, i, :]
+            #    ss = self.gates[1, :, i, :] * H_grad[:, i, :]
+
+            #    ts = np.dot(gates_grad[1, :, i, :], self.hidden_weights[1, :, :].T)
+            #    fos = np.dot(gates_grad[0, :, i, :], self.hidden_weights[0, :, :].T)
+
+            #    H_grad[:, i - 1, :] = fs + ss + ts + fos + dEdY[:, i - 1, :]
+
 
         return dEdW_in, dEdW_hh, dEdB_in, X_grad

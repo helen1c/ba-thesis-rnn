@@ -2,7 +2,7 @@ import torch
 from torch import nn
 
 import numpy as np
-
+from activations import ReLu
 from RNNLayer import RnnLayer
 N = 32
 emb_dim = 300
@@ -14,8 +14,8 @@ x = torch.randn(N, seq_len, emb_dim, requires_grad=True)
 
 x_ = x.detach().numpy()
 
-rnn = nn.RNN(emb_dim, hidden_dim, bias=False, batch_first=True)
-rnn_ = RnnLayer(emb_dim, hidden_dim, use_bias=False)
+rnn = nn.RNN(emb_dim, hidden_dim, bias=False, batch_first=True, nonlinearity='relu')
+rnn_ = RnnLayer(emb_dim, hidden_dim, use_bias=False, activation=ReLu)
 rnn_.input_weights = rnn.weight_ih_l0.detach().numpy()
 rnn_.hidden_weights = rnn.weight_hh_l0.detach().numpy()
 

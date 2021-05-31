@@ -1,3 +1,6 @@
 .idea
 glove-wikipedia
 __pycache__
+models
+dataset
+final-models

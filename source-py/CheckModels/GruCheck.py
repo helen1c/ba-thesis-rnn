@@ -4,15 +4,15 @@ from torch import nn
 import numpy as np
 from GRULayer import GRULayer
 
-N = 5
-emb_dim = 5
-seq_len = 4
-hidden_dim = 5
+#N = 5
+#emb_dim = 5
+#seq_len = 4
+#hidden_dim = 5
 
-# N = 20
-# emb_dim = 40
-# seq_len = 32
-# hidden_dim = 200
+N = 3
+emb_dim = 4
+seq_len = 2
+hidden_dim = 5
 
 x = torch.randn(N, seq_len, emb_dim, requires_grad=True)
 x_ = x.detach().numpy()
@@ -52,9 +52,13 @@ gru_out.backward(de_dy)
 
 dEdW_in, dEdW_hh, a, X_grad = gru_.backward(x_, de_dy_)
 
+
 print('LSTM layer gradient check dEdW_in: ', np.isclose(gru.weight_ih_l0.grad.numpy(), dEdW_in.reshape(3 * hidden_dim, emb_dim), atol=1e-3).all())
 print('LSTM layer gradient check dEdW_hh: ', np.isclose(gru.weight_hh_l0.grad.numpy(), dEdW_hh.reshape(3 * hidden_dim, hidden_dim), atol=1e-3).all())
 print('LSTM layer gradient check dEdX: ', np.isclose(x.grad.numpy(), X_grad, atol=1e-3).all())
 
 #print(f'Njihove tezine: {gru.weight_hh_l0.grad}')
 #print(f'Moje tezine: {dEdW_hh.reshape(3 * hidden_dim, emb_dim)}')
+
+print(gru.weight_ih_l0.grad.numpy())
+print(dEdW_in.reshape(3 * hidden_dim, emb_dim))

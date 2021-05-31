@@ -1,6 +1,7 @@
 import numpy as np
 from DenseLayer import DenseLayer
 from RNNLayer import RnnLayer
+from activations import ReLu
 
 class RNNClassifier(object):
     def __init__(self, input_dim, hidden_dim, vocab_size, embeddings, use_bias=True):
@@ -10,9 +11,9 @@ class RNNClassifier(object):
         self.embeddings = embeddings
         self.use_bias = use_bias
 
-        self.rnn_layer_0 = RnnLayer(input_dim, hidden_dim, use_bias=False)
-        self.rnn_layer_1 = RnnLayer(hidden_dim, hidden_dim, use_bias=False)
-        self.dense = DenseLayer(hidden_dim, vocab_size, use_bias=False)
+        self.rnn_layer_0 = RnnLayer(input_dim, hidden_dim, use_bias=use_bias, activation=ReLu)
+        self.rnn_layer_1 = RnnLayer(hidden_dim, hidden_dim, use_bias=use_bias, activation=ReLu)
+        self.dense = DenseLayer(hidden_dim, vocab_size)
 
         self.inputs = None
 
@@ -31,8 +32,8 @@ class RNNClassifier(object):
         rnn_1_wih, rnn_1_whh, rnn_1_b, rnn_1_x = self.rnn_layer_1.backward(self.H_0[:, 1:, :], self.H_1, dense_x)
         rnn_0_wih, rnn_0_whh, rnn_0_b, _ = self.rnn_layer_0.backward(self.inputs, self.H_0, rnn_1_x)
 
-        return [dense_w, rnn_1_wih, rnn_1_whh, rnn_0_wih, rnn_0_whh], [self.dense.weights, self.rnn_layer_1.input_weights, self.rnn_layer_1.hidden_weights,
-                                                                       self.rnn_layer_0.input_weights, self.rnn_layer_0.hidden_weights]
+        return [dense_w, rnn_1_wih, rnn_1_whh, rnn_0_wih, rnn_0_whh, dense_b, rnn_0_b, rnn_1_b], [self.dense.weights, self.rnn_layer_1.input_weights, self.rnn_layer_1.hidden_weights,
+                                                                       self.rnn_layer_0.input_weights, self.rnn_layer_0.hidden_weights, self.dense.bias, self.rnn_layer_0.bias, self.rnn_layer_1.bias]
 
     def get_embeddings(self, mini_batch):
         w2vec = np.zeros((mini_batch.shape[0], mini_batch.shape[1], self.embeddings.shape[1]))
