@@ -11,3 +11,7 @@ Prilikom vježbanja i učenja strukture mreža korišteni su primjeri sa sljede�
     - https://peterroelants.github.io/posts/rnn-implementation-part01/  
     - https://blog.floydhub.com/a-beginners-guide-on-recurrent-neural-networks-with-pytorch/  
 
+  
+Lokacija implementiranih slojeva: /source-py, unutar tog direktorija nalaze se: DenseLayer, RNNLayer, LSTMLayer, GRULayer itd.  
+Napomena: Backward metoda GRULayer-a trenutno nije potpuno funkcionalna (neispravni gradijenti s obzirom na skriveno stanje).  
+
