@@ -1,14 +1,13 @@
 import torch
 from torch import nn
 import numpy as np
-import numpy as np
 from podium import BucketIterator
 from podium import TabularDataset, Vocab, Field
 from podium.vectorizers import GloVe
 from podium.vocab import UNK, PAD, EOS, BOS
 
 
-data_path_train_csv = '../dataset/dd_dataset/test/test/test.csv'
+data_path_train_csv = '../../dataset/dd_dataset/test/test/test.csv'
 
 
 def lowercase(raw):

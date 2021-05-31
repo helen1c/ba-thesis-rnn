@@ -11,7 +11,7 @@ from optimizers import Adam
 from LSTMLayer import LSTMLayer
 import pickle
 
-data_path_train_csv = '../dataset/dd_dataset/train/train/train.csv'
+data_path_train_csv = '../../dataset/dd_dataset/train/train/train.csv'
 
 
 def lowercase(raw):

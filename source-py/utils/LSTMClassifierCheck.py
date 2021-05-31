@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 from activations import Softmax
 
-dataset_store_path = 'dataset/dataset_whole_train_train_test_split_7_3_50dim.pkl'
+dataset_store_path = '../dataset/dataset_whole_train_train_test_split_7_3_50dim.pkl'
 
 
 def instance_length(instance):
@@ -46,22 +46,16 @@ def get_one_hots(inputs):
 bucket_iter_test = BucketIterator(dataset_test, batch_size=64, bucket_sort_key=instance_length)
 bucket_iterator = BucketIterator(dataset_train, batch_size=64, bucket_sort_key=instance_length, shuffle=True)
 
-inputs = []
-outputs = []
-test_outputs = []
-test_inputs = []
-c = 0
+# for instance in bucket_iterator:
+#    inputs.append(np.where(instance.text == 3, 0, instance.text)[:, 0:-1])
+#    outputs.append(get_one_hots(instance.text[:, 1:]))
 
-
-for instance in bucket_iterator:
-    inputs.append(np.where(instance.text == 3, 0, instance.text)[:, 0:-1])
-    outputs.append(get_one_hots(instance.text[:, 1:]))
-
-for instance in bucket_iter_test:
-    test_inputs.append(np.where(instance.text == 3, 0, instance.text)[:, 0:-1])
-    test_outputs.append(instance.text[:, 1:])
+# for instance in bucket_iter_test:
+#    test_inputs.append(np.where(instance.text == 3, 0, instance.text)[:, 0:-1])
+#    test_outputs.append(instance.text[:, 1:])
 
 print("Iterating end.")
+
 
 def validate(test_output, predictions, n):
     cnt = 0
@@ -73,26 +67,32 @@ def validate(test_output, predictions, n):
             if outp in indices:
                 cnt += 1
     return (cnt * 1.0) / (test_output.shape[0] * test_output.shape[1])
-topN  = 10
+
+
+topN = 10
 
 for i in range(num_epochs):
-    for j in range(len(inputs)):
-        out = classifier.forward(inputs[j])
-
-        loss = criterion.forward(outputs[j], out)
-        dedy = criterion.backward(outputs[j])
+    bn=0
+    for instance in bucket_iterator:
+        out = classifier.forward(np.where(instance.text == 3, 0, instance.text)[:, 0:-1])
+        one_hots = get_one_hots(instance.text[:, 1:])
+        loss = criterion.forward(one_hots, out)
+        dedy = criterion.backward(one_hots)
         gradients, model_params = classifier.backward(dedy)
         optimizer.update_parameters(model_params, gradients)
-        print(f'Epoch number={i + 1} | Loss={loss} | Batch number={j + 1}')
+        bn+=1
+        print(f'Epoch number={i + 1} | Loss={loss} | Batch number={bn}')
 
     sum_prec = 0.
-    for k in range(len(test_inputs)):
-        predictions = Softmax.forward(classifier.forward(test_inputs[k]))
+    cnt = 0.
+    for instance in bucket_iter_test:
+        predictions = Softmax.forward(classifier.forward(np.where(instance.text == 3, 0, instance.text)[:, 0:-1]))
 
-        prec = validate(test_outputs[k], predictions, topN)
+        prec = validate(instance.text[:, 1:], predictions, topN)
         sum_prec += prec
-        print(f'Precision on {k + 1}. batch --> P @ {topN} = {prec}')
-    print(f'Average precision after {i + 1} epochs on {len(test_inputs)} batches -> P @ {topN} = {sum_prec / (len(test_inputs) * 1.)}')
+        cnt += 1.
+        print(f'Precision on {cnt}. batch --> P @ {topN} = {prec}')
+    print(f'Average precision after {i + 1} epochs on {cnt} batches -> P @ {topN} = {sum_prec / (cnt * 1.)}')
 
     if i % 5 == 0 and i > 0:
         model_save = f'models/model_1_l_lstm_train_whole_50d_epoch_={i + 1}.pkl'
