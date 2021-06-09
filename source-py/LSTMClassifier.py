@@ -13,42 +13,23 @@ class LSTMClassifier(object):
         self.use_bias = use_bias
 
         self.lstm_layer_0 = LSTMLayer(input_dim, hidden_dim, use_bias=True)
-        self.lstm_layer_1 = LSTMLayer(hidden_dim, hidden_dim, use_bias=True)
+        #self.lstm_layer_1 = LSTMLayer(hidden_dim, hidden_dim, use_bias=True)
         self.dense = DenseLayer(hidden_dim, vocab_size, use_bias=True)
 
         self.inputs = None
 
-        #self.H_0 = None
-        #self.H_1 = None
-
         self.H_0 = None
 
-    def forward(self, inputs):
-
-        #self.inputs = self.get_embeddings(inputs)
-        #self.H_0, _, _ = self.lstm_layer_0.forward(self.inputs)
-        #self.H_1, _, _ = self.lstm_layer_1.forward(self.H_0[:, 1:, :])
-        #return self.dense.forward(self.H_1[:, 1:, :])
+    def forward(self, inputs, h_0=None):
 
         self.inputs = self.get_embeddings(inputs)
-        self.H_0, _, _ = self.lstm_layer_0.forward(self.inputs)
+        self.H_0, _, _ = self.lstm_layer_0.forward(self.inputs, h_0)
         return self.dense.forward(self.H_0[:, 1:, :])
 
     def backward(self, dEdY):
-        #2 sloja
-        #dense_x, dense_w, dense_b = self.dense.backward(dEdY)
-        #lstm_1_wih, lstm_1_whh, lstm_1_b, x_grad_1 = self.lstm_layer_1.backward(self.H_0[:, 1:, :], dense_x)
-        #lstm_0_wih, lstm_0_whh, lstm_0_b, _ = self.lstm_layer_0.backward(self.inputs, x_grad_1)
-
 
         dense_x, dense_w, dense_b = self.dense.backward(dEdY)
         lstm_0_wih, lstm_0_whh, lstm_0_b, _ = self.lstm_layer_0.backward(self.inputs, dense_x)
-
-        #2 sloja
-        #return [dense_w, dense_b, lstm_1_wih, lstm_1_whh, lstm_1_b, lstm_0_wih, lstm_0_whh, lstm_0_b], \
-        #       [self.dense.weights, self.dense.bias, self.lstm_layer_1.input_weights, self.lstm_layer_1.hidden_weights,
-        #        self.lstm_layer_1.bias, self.lstm_layer_0.input_weights, self.lstm_layer_0.hidden_weights,
-        #        self.lstm_layer_0.bias]
 
         return [dense_w, dense_b, lstm_0_wih, lstm_0_whh, lstm_0_b], \
                [self.dense.weights, self.dense.bias, self.lstm_layer_0.input_weights, self.lstm_layer_0.hidden_weights,

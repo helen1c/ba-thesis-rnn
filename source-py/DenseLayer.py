@@ -16,16 +16,20 @@ class DenseLayer(object):
 
     def forward(self, x_in):
         self.x_in = x_in
-        return np.tensordot(self.x_in, self.weights.T, axes=((-1), 0)) + self.bias
+        return np.einsum('b...i,ih->b...h', self.x_in, self.weights.T) + self.bias
 
     def backward(self, de_dy):
         # de_dw = de_dy * dYdW = de_dy * X
         # dEdb = de_dy * dYdb = de_dy
         # dEdX = de_dy * dYdX = de_dy * W
 
+        #einsum nema mogucnost sumiranja po opcionalnim
+        #dimenzijama, ako barem jedan od argumenata nije fiksan
+        #zato se koristi tensordot
         axis = tuple(range(len(self.x_in.shape) - 1))
         de_dw = np.tensordot(de_dy, self.x_in, axes=(axis, axis))
-        de_db = np.sum(de_dy, axis=axis)
-        de_dx = np.tensordot(de_dy, self.weights, axes=(-1, 0))
+        de_db = de_dy.sum(axis=axis)
+        de_dx = np.einsum('b...h,hi->b...i', de_dy, self.weights)
 
         return de_dx, de_dw, de_db
+

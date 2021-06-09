@@ -87,7 +87,7 @@ for i in range(n_epochs):
 
     dEdY = clos.backward(T)
 
-    de_dx, de_dw, de_db_d = dense.backward(dEdY, H[:, 1:, :])
+    de_dx, de_dw, de_db_d = dense.backward(dEdY)
     dEdW_in1, dEdW_hh1, de_db_r1, grad = rnn2.backward(o, de_dx)
     dEdW_in2, dEdW_hh2, de_db_r2, _ = rnn1.backward(X, grad)
 

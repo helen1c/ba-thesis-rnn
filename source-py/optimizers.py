@@ -59,8 +59,8 @@ class Adam(object):
             new_momentum = self.beta1 * self.last_momentum[i] + (1 - self.beta1) * gradients[i]
             new_rms = self.beta2 * self.last_rms[i] + (1 - self.beta2) * (gradients[i] ** 2)
 
-            #new_momentum = np.divide(1, 1 - np.power(self.beta1, self.iteration_counter)) * new_momentum
-            #new_rms = np.divide(1, 1 - np.power(self.beta2, self.iteration_counter)) * new_rms
+            new_momentum = np.divide(1, 1 - np.power(self.beta1, self.iteration_counter)) * new_momentum
+            new_rms = np.divide(1, 1 - np.power(self.beta2, self.iteration_counter)) * new_rms
 
             model_parameters[i] -= ((self.learning_rate * new_momentum) / (np.sqrt(new_rms) + np.full_like(new_rms, self.eta, dtype=np.double)))
             self.last_momentum[i] = new_momentum
