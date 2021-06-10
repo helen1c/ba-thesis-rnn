@@ -4,7 +4,7 @@ Repozitorij za završni rad
 Tema: "Implementacija povratne neuronske mreže i primjena na zadatku predviđanja sljedeće riječi"  
 Student: Ivan Martinović  
 Mentor: izv. prof. dr. sc Jan Šnajder  
-Komentor: Josip Jukić  
+Komentor: mag. ing. Josip Jukić  
 
 Prilikom vježbanja i učenja strukture mreža korišteni su primjeri sa sljedećih poveznica:  
     - https://peterroelants.github.io/posts/neural-network-implementation-part01/  
